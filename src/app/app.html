@@ -1,0 +1,30 @@
+<h1>TypeScript Practice</h1>
+
+<h2>Student Information</h2>
+
+<p>Name: {{ studentName }}</p>
+
+<p>Age: {{ studentAge }}</p>
+
+<p>Grade: {{ studentGrade }}</p>
+
+<p>Passed: {{ isPassed }}</p>
+
+<p>Course: {{ courseName }}</p>
+<h2>Students List</h2>
+
+<ul>
+  @for (student of students; track student) {
+    <li>{{ student }}</li>
+  }
+</ul>
+
+<h2>Students Grades</h2>
+
+<ul>
+  @for (grade of grades; track $index) {
+    <li>{{ grade }}</li>
+  }
+</ul>
+
+<p>Total Grades: {{ getTotalGrades() }}</p>
