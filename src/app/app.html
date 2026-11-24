@@ -1,30 +1,277 @@
-<h1>TypeScript Practice</h1>
 
-<h2>Student Information</h2>
+<div class="dashboard" dir="rtl">
 
-<p>Name: {{ studentName }}</p>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-title">
+      <div class="header-icon">👥</div>
 
-<p>Age: {{ studentAge }}</p>
+      <div>
+        <h1>فهرست کاربران</h1>
+        <p>مشاهده، جستجو و مدیریت کاربران سیستم</p>
+      </div>
+    </div>
 
-<p>Grade: {{ studentGrade }}</p>
+    <button class="add-btn" (click)="openAddForm()">
+      <span>＋</span>
+      افزودن کاربر جدید
+    </button>
+  </header>
 
-<p>Passed: {{ isPassed }}</p>
+  <!-- Statistics -->
+  <section class="stats">
 
-<p>Course: {{ courseName }}</p>
-<h2>Students List</h2>
+    <div class="stat-card">
+      <span>کل کاربران</span>
+      <strong>{{ users.length }}</strong>
+    </div>
 
-<ul>
-  @for (student of students; track student) {
-    <li>{{ student }}</li>
+    <div class="stat-card">
+      <span>کاربران فعال</span>
+      <strong class="green-text">{{ activeUsersCount }}</strong>
+    </div>
+
+    <div class="stat-card">
+      <span>کاربران غیرفعال</span>
+      <strong class="red-text">{{ inactiveUsersCount }}</strong>
+    </div>
+
+  </section>
+
+  <!-- Search and Filter -->
+  <section class="toolbar">
+
+    <div class="search-box">
+      <span>⌕</span>
+
+      <input
+        type="text"
+        placeholder="جستجوی کاربر (نام یا ایمیل...)"
+        (input)="searchTerm = $any($event.target).value"
+      />
+    </div>
+
+    <select
+      class="filter-select"
+      (change)="selectedRole = $any($event.target).value"
+    >
+      <option value="همه نقش‌ها">همه نقش‌ها</option>
+      <option value="مدیر سیستم">مدیر سیستم</option>
+      <option value="کاربر عادی">کاربر عادی</option>
+      <option value="اپراتور">اپراتور</option>
+    </select>
+
+  </section>
+
+  <!-- Add / Edit Form -->
+  @if (showForm) {
+    <section class="form-card">
+
+      <h2>
+        {{ editingUser ? 'ویرایش کاربر' : 'افزودن کاربر جدید' }}
+      </h2>
+
+      <form
+        (submit)="saveUser($event, nameField.value, emailField.value, roleField.value)"
+      >
+
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label>نام و نام خانوادگی</label>
+            <input
+              #nameField
+              type="text"
+              placeholder="نام کاربر"
+              [value]="editingUser?.name ?? ''"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>ایمیل</label>
+            <input
+              #emailField
+              type="email"
+              placeholder="example@email.com"
+              [value]="editingUser?.email ?? ''"
+              dir="ltr"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>نقش کاربر</label>
+            <select
+              #roleField
+              [value]="editingUser?.role ?? 'کاربر عادی'"
+            >
+              <option value="مدیر سیستم">مدیر سیستم</option>
+              <option value="کاربر عادی">کاربر عادی</option>
+              <option value="اپراتور">اپراتور</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="add-btn">
+            ذخیره اطلاعات
+          </button>
+
+          <button
+            type="button"
+            class="cancel-btn"
+            (click)="closeForm()"
+          >
+            انصراف
+          </button>
+        </div>
+
+      </form>
+    </section>
   }
-</ul>
 
-<h2>Students Grades</h2>
+  <!-- Selected User Details -->
+  @if (selectedUser; as user) {
+    <section class="details-card">
+      <div>
+        <h3>اطلاعات کاربر انتخاب‌شده</h3>
+        <p>{{ user.name }}</p>
+        <p dir="ltr">{{ user.email }}</p>
+        <p>نقش: {{ user.role }}</p>
+        <p>وضعیت: {{ user.active ? 'فعال' : 'غیرفعال' }}</p>
+      </div>
 
-<ul>
-  @for (grade of grades; track $index) {
-    <li>{{ grade }}</li>
+      <button class="cancel-btn" (click)="closeDetails()">
+        بستن
+      </button>
+    </section>
   }
-</ul>
 
-<p>Total Grades: {{ getTotalGrades() }}</p>
+  <!-- Users Table -->
+  <section class="table-card">
+
+    <div class="table-heading">
+      <h2>لیست کاربران</h2>
+      <span>{{ filteredUsers.length }} کاربر</span>
+    </div>
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>نام و نام خانوادگی</th>
+            <th>ایمیل</th>
+            <th>نقش</th>
+            <th>وضعیت</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          @for (user of filteredUsers; track user.id) {
+
+            <tr>
+
+              <td>{{ $index + 1 }}</td>
+
+              <td>
+                <div class="user-info">
+
+                  <img
+                    class="avatar"
+                    [src]="user.image"
+                    [alt]="user.name"
+                  />
+
+                  <strong>{{ user.name }}</strong>
+
+                </div>
+              </td>
+
+              <td>
+                <span class="email">{{ user.email }}</span>
+              </td>
+
+              <td>
+                <span
+                  class="role-badge"
+                  [class.admin]="user.role === 'مدیر سیستم'"
+                  [class.operator]="user.role === 'اپراتور'"
+                  [class.normal]="user.role === 'کاربر عادی'"
+                >
+                  {{ user.role }}
+                </span>
+              </td>
+
+              <td>
+                <button
+                  class="status-badge"
+                  [class.inactive]="!user.active"
+                  (click)="toggleStatus(user.id)"
+                >
+                  <span class="status-dot"></span>
+                  {{ user.active ? 'فعال' : 'غیرفعال' }}
+                </button>
+              </td>
+
+              <td>
+                <div class="actions">
+
+                  <button
+                    class="action-btn view"
+                    title="مشاهده"
+                    (click)="viewUser(user)"
+                  >
+                    ◉
+                  </button>
+
+                  <button
+                    class="action-btn edit"
+                    title="ویرایش"
+                    (click)="editUser(user)"
+                  >
+                    ✎
+                  </button>
+
+                  <button
+                    class="action-btn delete"
+                    title="حذف"
+                    (click)="deleteUser(user.id)"
+                  >
+                    ♲
+                  </button>
+
+                </div>
+              </td>
+
+            </tr>
+
+          } @empty {
+
+            <tr>
+              <td colspan="6" class="empty-message">
+                کاربری با این مشخصات پیدا نشد!
+              </td>
+            </tr>
+
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+  <footer>
+    Angular Practice Project
+  </footer>
+
+</div>
